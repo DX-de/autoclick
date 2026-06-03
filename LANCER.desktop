@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Auto Clicker Pro
+Comment=Clic automatique
+Exec=bash /home/bastin-romain/autoclick/run.sh
+Path=/home/bastin-romain/autoclick
+Icon=utilities-terminal
+Terminal=false
+Categories=Utility;

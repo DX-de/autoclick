@@ -1,0 +1,9 @@
+# Auto Clicker Pro — Python 3.12+
+customtkinter>=5.2.2
+pynput>=1.7.7
+python-xlib>=0.33
+Pillow>=10.0.0
+PySide6>=6.6.0
+
+# Build exécutable Windows (optionnel)
+# pyinstaller>=6.0.0

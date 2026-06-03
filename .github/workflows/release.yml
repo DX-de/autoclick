@@ -1,0 +1,80 @@
+# Build automatique Windows + Linux à chaque tag v* (ex. v1.0.0)
+# Publie les fichiers sur GitHub Releases.
+
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt pyinstaller
+      - run: |
+          pyinstaller --noconfirm --onefile --windowed --name AutoClickerPro ^
+            --hidden-import=PySide6 ^
+            --hidden-import=PySide6.QtCore ^
+            --hidden-import=PySide6.QtWidgets ^
+            --hidden-import=pynput ^
+            --hidden-import=customtkinter ^
+            --hidden-import=PIL ^
+            --collect-all PySide6 ^
+            --collect-all customtkinter ^
+            main.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-exe
+          path: dist/AutoClickerPro.exe
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-tk python3-dev build-essential
+      - run: pip install -r requirements.txt pyinstaller
+      - run: |
+          pyinstaller --noconfirm --onefile --windowed --name AutoClickerPro \
+            --hidden-import=PySide6 \
+            --hidden-import=PySide6.QtCore \
+            --hidden-import=PySide6.QtWidgets \
+            --hidden-import=pynput \
+            --hidden-import=customtkinter \
+            --collect-all PySide6 \
+            --collect-all customtkinter \
+            main.py
+          chmod +x dist/AutoClickerPro
+      - run: |
+          cd dist && zip -j AutoClickerPro-linux.zip AutoClickerPro
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-binary
+          path: dist/AutoClickerPro-linux.zip
+
+  publish:
+    needs: [build-windows, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/windows-exe/AutoClickerPro.exe
+            artifacts/linux-binary/AutoClickerPro-linux.zip
+          generate_release_notes: true
