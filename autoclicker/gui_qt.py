@@ -7,6 +7,7 @@ from __future__ import annotations
 from typing import Callable, Optional
 
 from PySide6.QtCore import Qt, QTimer
+from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import (
     QApplication,
     QButtonGroup,
@@ -18,6 +19,7 @@ from PySide6.QtWidgets import (
     QGridLayout,
     QGroupBox,
     QHBoxLayout,
+    QInputDialog,
     QLabel,
     QListWidget,
     QMainWindow,
@@ -27,6 +29,7 @@ from PySide6.QtWidgets import (
     QRadioButton,
     QSlider,
     QSpinBox,
+    QSystemTrayIcon,
     QVBoxLayout,
     QWidget,
 )
@@ -36,7 +39,9 @@ from pynput.mouse import Controller as MouseController
 from autoclicker.click_engine import ClickEngine
 from autoclicker.config import AppSettings, ClickButton, ClickMode, PositionOrder
 from autoclicker.hotkey_manager import HotkeyManager, key_to_hotkey_string
+from autoclicker.icon_util import make_app_icon
 from autoclicker.persistence import load_settings, save_settings
+from autoclicker import profiles as profile_store
 from autoclicker.styles import (
     COLOR_ACCENT,
     COLOR_ACTIVE,
@@ -93,14 +98,17 @@ class KeyCaptureDialog(QDialog):
 class AutoClickerWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
-        self.setWindowTitle("Auto Clicker Pro")
-        self.resize(540, 780)
+        self.setWindowTitle("Auto Clicker Pro v1.1")
+        self.resize(540, 820)
+        self.setWindowIcon(make_app_icon())
 
         self._settings = load_settings()
         self._mouse = MouseController()
         self._countdown_timer: Optional[QTimer] = None
         self._countdown_remaining = 0
         self._config_widgets: list[QWidget] = []
+        self._tray: Optional[QSystemTrayIcon] = None
+        self._really_quit = False
 
         self._engine = ClickEngine(
             on_running_change=self._on_engine_running_change,
@@ -119,6 +127,7 @@ class AutoClickerWindow(QMainWindow):
 
         self._build_ui()
         self._sync_ui_from_settings()
+        self._setup_tray()
         self._start_mouse_tracker()
 
     def _build_ui(self) -> None:
@@ -138,6 +147,27 @@ class AutoClickerWindow(QMainWindow):
             f"color: {COLOR_STOPPED}; font-weight: bold; font-size: 14px;"
         )
         header.addWidget(self._status)
+
+        # Profils
+        prof = QGroupBox("Profils")
+        pl = QHBoxLayout(prof)
+        self._profile_combo = QComboBox()
+        self._profile_combo.setMinimumWidth(140)
+        self._profile_combo.currentTextChanged.connect(self._on_profile_selected)
+        pl.addWidget(QLabel("Profil :"))
+        pl.addWidget(self._profile_combo, 1)
+        save_p = QPushButton("Sauver")
+        save_p.clicked.connect(self._save_profile)
+        pl.addWidget(save_p)
+        new_p = QPushButton("Nouveau")
+        new_p.clicked.connect(self._new_profile)
+        pl.addWidget(new_p)
+        del_p = QPushButton("Suppr.")
+        del_p.clicked.connect(self._delete_profile)
+        pl.addWidget(del_p)
+        layout.addWidget(prof)
+        self._config_widgets.extend([self._profile_combo, save_p, new_p, del_p])
+        self._refresh_profile_combo()
 
         btns = QHBoxLayout()
         layout.addLayout(btns)
@@ -274,6 +304,12 @@ class AutoClickerWindow(QMainWindow):
         self._jitter_max.valueChanged.connect(self._on_jitter_changed)
         ag.addWidget(self._jitter_max, 2, 1)
         self._config_widgets.append(self._jitter_max)
+
+        self._minimize_tray = QCheckBox("Réduire dans la barre système à la fermeture")
+        self._minimize_tray.setChecked(True)
+        self._minimize_tray.toggled.connect(self._on_tray_toggle)
+        ag.addWidget(self._minimize_tray, 3, 0, 1, 2)
+
         layout.addWidget(adv)
 
         hk = QGroupBox("Raccourcis clavier")
@@ -299,6 +335,114 @@ class AutoClickerWindow(QMainWindow):
         self._footer.setAlignment(Qt.AlignCenter)
         layout.addWidget(self._footer)
         self._update_footer()
+
+    def _setup_tray(self) -> None:
+        if not QSystemTrayIcon.isSystemTrayAvailable():
+            self._minimize_tray.setEnabled(False)
+            self._minimize_tray.setChecked(False)
+            return
+
+        from PySide6.QtWidgets import QMenu
+
+        self._tray = QSystemTrayIcon(make_app_icon(), self)
+        self._tray.setToolTip("Auto Clicker Pro")
+        menu = QMenu(self)
+
+        show_act = QAction("Afficher", self)
+        show_act.triggered.connect(self._show_from_tray)
+        menu.addAction(show_act)
+
+        toggle_act = QAction("Démarrer / Arrêter", self)
+        toggle_act.triggered.connect(self._on_toggle_clicked)
+        menu.addAction(toggle_act)
+
+        menu.addSeparator()
+        quit_act = QAction("Quitter", self)
+        quit_act.triggered.connect(self._quit_app)
+        menu.addAction(quit_act)
+
+        self._tray.setContextMenu(menu)
+        self._tray.activated.connect(self._on_tray_activated)
+        self._tray.show()
+
+    def _on_tray_activated(self, reason) -> None:
+        if reason == QSystemTrayIcon.DoubleClick:
+            self._show_from_tray()
+
+    def _show_from_tray(self) -> None:
+        self.showNormal()
+        self.raise_()
+        self.activateWindow()
+
+    def _quit_app(self) -> None:
+        self._really_quit = True
+        self.close()
+
+    def _on_tray_toggle(self, checked: bool) -> None:
+        self._settings.minimize_to_tray = checked
+        save_settings(self._settings)
+
+    def _refresh_profile_combo(self) -> None:
+        names = profile_store.list_profiles()
+        active = profile_store.get_active_profile_name()
+        self._profile_combo.blockSignals(True)
+        self._profile_combo.clear()
+        self._profile_combo.addItem("— Aucun —", "")
+        for n in names:
+            self._profile_combo.addItem(n, n)
+        if active:
+            idx = self._profile_combo.findData(active)
+            if idx >= 0:
+                self._profile_combo.setCurrentIndex(idx)
+        self._profile_combo.blockSignals(False)
+
+    def _on_profile_selected(self, name: str) -> None:
+        if not name or name == "— Aucun —":
+            return
+        try:
+            self._settings = profile_store.load_profile(name)
+            profile_store.set_active_profile(name)
+            self._engine.update_settings(self._settings)
+            self._hotkeys.set_hotkeys(
+                self._settings.toggle_hotkey,
+                self._settings.emergency_hotkey,
+            )
+            self._sync_ui_from_settings()
+        except KeyError:
+            pass
+
+    def _save_profile(self) -> None:
+        self._apply_settings()
+        name, ok = QInputDialog.getText(
+            self, "Sauver le profil", "Nom du profil :",
+            text=profile_store.get_active_profile_name() or "Mon profil",
+        )
+        if not ok or not name.strip():
+            return
+        profile_store.save_profile(name.strip(), self._settings)
+        self._refresh_profile_combo()
+        idx = self._profile_combo.findData(name.strip())
+        if idx >= 0:
+            self._profile_combo.setCurrentIndex(idx)
+
+    def _new_profile(self) -> None:
+        name, ok = QInputDialog.getText(self, "Nouveau profil", "Nom :")
+        if not ok or not name.strip():
+            return
+        self._apply_settings()
+        profile_store.save_profile(name.strip(), self._settings)
+        self._refresh_profile_combo()
+
+    def _delete_profile(self) -> None:
+        name = self._profile_combo.currentData()
+        if not name:
+            return
+        if QMessageBox.question(
+            self, "Supprimer", f"Supprimer le profil « {name} » ?"
+        ) != QMessageBox.Yes:
+            return
+        profile_store.delete_profile(name)
+        self._refresh_profile_combo()
 
     def _start_mouse_tracker(self) -> None:
         self._mouse_timer = QTimer(self)
@@ -340,6 +484,7 @@ class AutoClickerWindow(QMainWindow):
         self._countdown_spin.setValue(s.countdown_seconds)
         self._jitter_min.setValue(s.jitter_min_ms)
         self._jitter_max.setValue(s.jitter_max_ms)
+        self._minimize_tray.setChecked(s.minimize_to_tray)
         self._toggle_lbl.setText(s.toggle_hotkey_label)
         self._emergency_lbl.setText(s.emergency_hotkey_label)
         self._refresh_positions()
@@ -376,6 +521,7 @@ class AutoClickerWindow(QMainWindow):
             jitter_min_ms=jmin,
             jitter_max_ms=jmax,
             countdown_seconds=self._countdown_spin.value(),
+            minimize_to_tray=self._minimize_tray.isChecked(),
             toggle_hotkey=self._settings.toggle_hotkey,
             emergency_hotkey=self._settings.emergency_hotkey,
             toggle_hotkey_label=self._settings.toggle_hotkey_label,
@@ -545,6 +691,9 @@ class AutoClickerWindow(QMainWindow):
         def update() -> None:
             self._update_toggle_button(active)
             self._set_config_enabled(not active)
+            tip = f"Auto Clicker Pro — {'Actif' if active else 'Arrêté'}"
+            if self._tray:
+                self._tray.setToolTip(tip)
             if active:
                 self._status.setText("● Actif")
                 self._status.setStyleSheet(
@@ -568,11 +717,28 @@ class AutoClickerWindow(QMainWindow):
         )
 
     def closeEvent(self, event) -> None:
+        if (
+            not self._really_quit
+            and self._minimize_tray.isChecked()
+            and self._tray
+            and self._tray.isVisible()
+        ):
+            event.ignore()
+            self.hide()
+            self._tray.showMessage(
+                "Auto Clicker Pro",
+                "L'app tourne en arrière-plan. Clic droit sur l'icône pour quitter.",
+                QSystemTrayIcon.Information,
+                3000,
+            )
+            return
         self._cancel_countdown()
         self._engine.stop()
         self._hotkeys.stop()
         self._settings = self._collect_settings()
         save_settings(self._settings)
+        if self._tray:
+            self._tray.hide()
         super().closeEvent(event)
 
 
@@ -580,8 +746,10 @@ def run_app_qt() -> None:
     import sys
 
     app = QApplication(sys.argv)
+    app.setQuitOnLastWindowClosed(False)
     app.setStyle("Fusion")
     app.setStyleSheet(DARK_STYLESHEET)
+    app.setWindowIcon(make_app_icon())
     win = AutoClickerWindow()
     win.show()
     sys.exit(app.exec())

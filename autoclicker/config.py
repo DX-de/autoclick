@@ -51,6 +51,9 @@ class AppSettings:
     # Décompte avant démarrage (secondes) — 0 = immédiat
     countdown_seconds: int = 0
 
+    # Réduire dans la barre système à la fermeture
+    minimize_to_tray: bool = True
+
     toggle_hotkey: str = "<f6>"
     emergency_hotkey: str = "<esc>"
     toggle_hotkey_label: str = "F6"

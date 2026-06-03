@@ -19,7 +19,7 @@ if ! "$GH" auth status &>/dev/null; then
   "$GH" auth login -h github.com -p ssh -s repo,workflow,read:org
 fi
 
-VERSION="v1.0.0"
+VERSION="v1.1.0"
 ZIP="dist/AutoClickerPro-linux-${VERSION}.zip"
 
 if [ ! -f "$ZIP" ]; then
