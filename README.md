@@ -4,6 +4,7 @@ Application professionnelle de clic automatique pour **Windows** et **Linux**, �
 
 ## Télécharger (utilisateurs finaux)
 
+- **Site web** : [https://dx-de.github.io/autoclick/](https://dx-de.github.io/autoclick/)
 - **Dernière version** : [GitHub Releases](https://github.com/DX-de/autoclick/releases/latest)
 - Windows : `AutoClickerPro.exe`
 - Linux : `AutoClickerPro-linux.zip` (dézipper puis lancer `./AutoClickerPro`)

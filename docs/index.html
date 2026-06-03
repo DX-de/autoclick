@@ -3,22 +3,30 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Auto Clicker Pro — clic automatique gratuit pour Windows et Linux. Téléchargement direct." />
-  <title>Auto Clicker Pro — Téléchargement</title>
+  <meta name="description" content="Auto Clicker Pro — free auto clicker for Windows and Linux. Download instantly." />
+  <meta property="og:title" content="Auto Clicker Pro" />
+  <meta property="og:description" content="Free auto clicker for Windows & Linux. Hotkeys, saved positions, infinite repeat." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://dx-de.github.io/autoclick/" />
+  <meta name="theme-color" content="#0f0f14" />
+  <title>Auto Clicker Pro</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #0f0f14;
-      --card: #1a1a24;
-      --border: #2a2a3a;
-      --text: #e8e8f0;
-      --muted: #8888a0;
+      --bg: #0a0a0f;
+      --card: #14141c;
+      --card-hover: #1a1a26;
+      --border: #252535;
+      --text: #eeeef5;
+      --muted: #7a7a95;
       --green: #4ade80;
       --blue: #60a5fa;
-      --red: #f87171;
+      --purple: #a78bfa;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
     body {
       font-family: "Inter", system-ui, sans-serif;
       background: var(--bg);
@@ -26,34 +34,81 @@
       min-height: 100vh;
       line-height: 1.6;
     }
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: .65rem;
+      font-weight: 700;
+      font-size: 1.05rem;
+      text-decoration: none;
+      color: var(--text);
+    }
+    .logo img { width: 36px; height: 36px; }
+    .nav-right { display: flex; align-items: center; gap: .8rem; }
+    .lang-btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: .35rem .75rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: .8rem;
+      font-weight: 600;
+    }
+    .lang-btn:hover { color: var(--text); border-color: var(--blue); }
     .hero {
       text-align: center;
-      padding: 4rem 1.5rem 3rem;
-      background: radial-gradient(ellipse at 50% 0%, #1e2a4a 0%, var(--bg) 70%);
+      padding: 2rem 1.5rem 4rem;
+      background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(96,165,250,.18), transparent);
+    }
+    .hero-logo {
+      width: 88px;
+      height: 88px;
+      margin: 0 auto 1.5rem;
+      filter: drop-shadow(0 0 24px rgba(96,165,250,.35));
     }
     .badge {
       display: inline-block;
-      background: rgba(96,165,250,.15);
+      background: rgba(96,165,250,.12);
       color: var(--blue);
-      font-size: .75rem;
+      font-size: .72rem;
       font-weight: 600;
       padding: .35rem .9rem;
       border-radius: 999px;
-      margin-bottom: 1.2rem;
-      letter-spacing: .05em;
+      margin-bottom: 1rem;
+      letter-spacing: .06em;
       text-transform: uppercase;
     }
     h1 {
-      font-size: clamp(2rem, 5vw, 3rem);
+      font-size: clamp(2.2rem, 6vw, 3.2rem);
       font-weight: 700;
+      letter-spacing: -.02em;
       margin-bottom: .8rem;
     }
     .subtitle {
       color: var(--muted);
-      font-size: 1.1rem;
-      max-width: 520px;
-      margin: 0 auto 2.5rem;
+      font-size: 1.15rem;
+      max-width: 540px;
+      margin: 0 auto 2rem;
     }
+    .stats {
+      display: flex;
+      gap: 2rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 2.5rem;
+    }
+    .stat { text-align: center; }
+    .stat-num { font-size: 1.4rem; font-weight: 700; color: var(--green); }
+    .stat-label { font-size: .75rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
     .downloads {
       display: flex;
       gap: 1rem;
@@ -64,181 +119,380 @@
     .btn {
       display: inline-flex;
       align-items: center;
-      gap: .6rem;
-      padding: .9rem 1.6rem;
-      border-radius: 10px;
+      gap: .55rem;
+      padding: 1rem 1.8rem;
+      border-radius: 12px;
       font-weight: 600;
       font-size: 1rem;
       text-decoration: none;
       transition: transform .15s, box-shadow .15s;
+      border: none;
+      cursor: pointer;
     }
-    .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.4); }
-    .btn-linux {
-      background: var(--green);
-      color: #052e16;
-    }
-    .btn-windows {
-      background: var(--blue);
-      color: #0c1a3a;
-    }
-    .btn-github {
+    .btn:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,.45); }
+    .btn-linux { background: linear-gradient(135deg, #4ade80, #22c55e); color: #052e16; }
+    .btn-windows { background: linear-gradient(135deg, #60a5fa, #3b82f6); color: #fff; }
+    .btn-windows.disabled { opacity: .55; cursor: not-allowed; pointer-events: none; }
+    .btn-secondary {
       background: transparent;
       color: var(--muted);
       border: 1px solid var(--border);
       font-size: .9rem;
-      padding: .6rem 1.2rem;
+      padding: .65rem 1.3rem;
     }
-    .note {
-      color: var(--muted);
-      font-size: .85rem;
-      margin-top: .5rem;
+    .btn-secondary:hover { color: var(--text); border-color: var(--purple); }
+    .note { color: var(--muted); font-size: .85rem; margin-top: .8rem; }
+    .container { max-width: 960px; margin: 0 auto; padding: 0 1.5rem 4rem; }
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 2rem;
     }
-    .container { max-width: 900px; margin: 0 auto; padding: 0 1.5rem 4rem; }
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 1.2rem;
-      margin: 3rem 0;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 1rem;
     }
     .card {
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1.5rem;
+      border-radius: 14px;
+      padding: 1.4rem;
+      transition: background .15s, border-color .15s;
     }
-    .card h3 { font-size: 1rem; margin-bottom: .5rem; }
-    .card p { color: var(--muted); font-size: .9rem; }
-    .card .icon { font-size: 1.8rem; margin-bottom: .8rem; }
-    section h2 {
-      font-size: 1.3rem;
-      margin-bottom: 1rem;
-      text-align: center;
-    }
-    .steps {
+    .card:hover { background: var(--card-hover); border-color: #353548; }
+    .card .icon { font-size: 1.6rem; margin-bottom: .7rem; }
+    .card h3 { font-size: .95rem; font-weight: 600; margin-bottom: .35rem; }
+    .card p { color: var(--muted); font-size: .85rem; }
+    .install-box {
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1.5rem 2rem;
-      margin-top: 2rem;
+      border-radius: 14px;
+      padding: 1.8rem 2rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
     }
-    .steps ol { padding-left: 1.2rem; color: var(--muted); }
-    .steps li { margin: .5rem 0; }
-    .steps code {
-      background: #252535;
-      padding: .15rem .45rem;
+    @media (max-width: 640px) { .install-box { grid-template-columns: 1fr; } }
+    .install-box h3 { font-size: 1rem; margin-bottom: .8rem; color: var(--blue); }
+    .install-box ol { padding-left: 1.1rem; color: var(--muted); font-size: .9rem; }
+    .install-box li { margin: .45rem 0; }
+    .install-box code {
+      background: #0f0f18;
+      padding: .12rem .4rem;
       border-radius: 4px;
-      font-size: .85rem;
+      font-size: .82rem;
       color: var(--green);
     }
+    .preview {
+      margin: 3rem 0;
+      text-align: center;
+    }
+    .preview-mock {
+      background: linear-gradient(145deg, #1a1a28, #12121a);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      max-width: 420px;
+      margin: 0 auto;
+      box-shadow: 0 24px 64px rgba(0,0,0,.5);
+    }
+    .mock-bar {
+      display: flex;
+      gap: .4rem;
+      margin-bottom: 1rem;
+    }
+    .mock-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .mock-dot.r { background: #f87171; }
+    .mock-dot.y { background: #fbbf24; }
+    .mock-dot.g { background: #4ade80; }
+    .mock-title { font-weight: 700; font-size: .95rem; margin-bottom: .5rem; }
+    .mock-status { color: var(--green); font-size: .8rem; margin-bottom: 1rem; }
+    .mock-slider {
+      height: 6px;
+      background: #252535;
+      border-radius: 3px;
+      margin: .8rem 0;
+      position: relative;
+    }
+    .mock-slider::after {
+      content: "";
+      position: absolute;
+      left: 0; top: 0; height: 100%; width: 40%;
+      background: var(--blue);
+      border-radius: 3px;
+    }
+    .mock-btns { display: flex; gap: .5rem; margin-top: 1rem; }
+    .mock-btn {
+      flex: 1;
+      padding: .5rem;
+      border-radius: 6px;
+      font-size: .75rem;
+      font-weight: 600;
+    }
+    .mock-btn.start { background: var(--green); color: #052e16; }
+    .mock-btn.stop { background: #f87171; color: #fff; }
     .warn {
-      background: rgba(248,113,113,.08);
-      border: 1px solid rgba(248,113,113,.25);
-      border-radius: 10px;
-      padding: 1rem 1.2rem;
+      background: rgba(248,113,113,.07);
+      border: 1px solid rgba(248,113,113,.2);
+      border-radius: 12px;
+      padding: 1rem 1.4rem;
       color: var(--muted);
       font-size: .85rem;
-      margin-top: 2rem;
+      margin-top: 2.5rem;
       text-align: center;
     }
     footer {
       text-align: center;
       color: var(--muted);
       font-size: .8rem;
-      padding: 2rem;
+      padding: 2.5rem 1.5rem;
       border-top: 1px solid var(--border);
     }
     footer a { color: var(--blue); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+    .win-soon {
+      display: none;
+      color: var(--muted);
+      font-size: .8rem;
+      margin-top: .4rem;
+    }
+    .win-soon.show { display: block; }
   </style>
 </head>
 <body>
 
+  <nav>
+    <a class="logo" href="#">
+      <img src="favicon.svg" alt="" />
+      Auto Clicker Pro
+    </a>
+    <div class="nav-right">
+      <button class="lang-btn" id="lang-toggle" onclick="toggleLang()">EN</button>
+      <a class="btn btn-secondary" href="https://github.com/DX-de/autoclick" data-i18n="nav_github">GitHub</a>
+    </div>
+  </nav>
+
   <header class="hero">
-    <div class="badge">Gratuit · Open source</div>
+    <img class="hero-logo" src="favicon.svg" alt="Auto Clicker Pro" />
+    <div class="badge" data-i18n="badge">Gratuit · Open source</div>
     <h1>Auto Clicker Pro</h1>
-    <p class="subtitle">
+    <p class="subtitle" data-i18n="subtitle">
       Clic automatique simple et puissant pour Windows et Linux.
       Raccourcis clavier, positions enregistrées, répétition infinie.
     </p>
 
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-num" id="dl-count">—</div>
+        <div class="stat-label" data-i18n="stat_downloads">Téléchargements</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="version">1.0.0</div>
+        <div class="stat-label" data-i18n="stat_version">Version</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">2</div>
+        <div class="stat-label" data-i18n="stat_platforms">Plateformes</div>
+      </div>
+    </div>
+
     <div class="downloads">
-      <a class="btn btn-linux" id="dl-linux" href="https://github.com/DX-de/autoclick/releases/latest/download/AutoClickerPro-linux-v1.0.0.zip">
-        🐧 Télécharger Linux
+      <a class="btn btn-linux" id="dl-linux" href="https://github.com/DX-de/autoclick/releases/latest">
+        🐧 <span data-i18n="dl_linux">Télécharger Linux</span>
       </a>
       <a class="btn btn-windows" id="dl-windows" href="https://github.com/DX-de/autoclick/releases/latest">
-        🪟 Télécharger Windows
+        🪟 <span data-i18n="dl_windows">Télécharger Windows</span>
       </a>
     </div>
-    <a class="btn btn-github" href="https://github.com/DX-de/autoclick">Voir sur GitHub</a>
-    <p class="note">Version <span id="version">1.0.0</span> · Aucune inscription requise</p>
+    <p class="win-soon" id="win-soon" data-i18n="win_soon">
+      Version Windows : bientôt disponible — utilise la page Releases en attendant.
+    </p>
+    <p class="note" data-i18n="note">Aucune inscription · 100 % gratuit · Fonctionne hors-ligne</p>
   </header>
 
   <div class="container">
+    <h2 class="section-title" data-i18n="features_title">Fonctionnalités</h2>
     <div class="grid">
       <div class="card">
         <div class="icon">⚡</div>
-        <h3>Rapide à configurer</h3>
-        <p>Régle les clics par seconde, choisis gauche/droit/molette, et c'est parti.</p>
+        <h3 data-i18n="f1_t">Rapide à configurer</h3>
+        <p data-i18n="f1_d">Clics par seconde, gauche/droit/molette — prêt en 10 secondes.</p>
       </div>
       <div class="card">
         <div class="icon">⌨️</div>
-        <h3>Raccourcis globaux</h3>
-        <p>F6 pour démarrer/arrêter, Échap pour l'arrêt d'urgence. Personnalisables.</p>
+        <h3 data-i18n="f2_t">Raccourcis globaux</h3>
+        <p data-i18n="f2_d">F6 start/stop, Échap urgence. Touches personnalisables.</p>
       </div>
       <div class="card">
         <div class="icon">📍</div>
-        <h3>Positions enregistrées</h3>
-        <p>Capture plusieurs points à cliquer en séquence ou aléatoirement.</p>
+        <h3 data-i18n="f3_t">Positions enregistrées</h3>
+        <p data-i18n="f3_d">Capture plusieurs points, ordre séquentiel ou aléatoire.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🔄</div>
+        <h3 data-i18n="f4_t">Répétition flexible</h3>
+        <p data-i18n="f4_d">Infini ou nombre de clics défini, avec barre de progression.</p>
+      </div>
+      <div class="card">
+        <div class="icon">⏱️</div>
+        <h3 data-i18n="f5_t">Décompte & jitter</h3>
+        <p data-i18n="f5_d">Compte à rebours avant départ et délais aléatoires optionnels.</p>
       </div>
       <div class="card">
         <div class="icon">🔒</div>
-        <h3>100 % local</h3>
-        <p>Aucune connexion internet requise. Tes réglages restent sur ton PC.</p>
+        <h3 data-i18n="f6_t">100 % local</h3>
+        <p data-i18n="f6_d">Aucune donnée envoyée. Config stockée sur ton PC uniquement.</p>
       </div>
     </div>
 
-    <section>
-      <h2>Installation</h2>
-      <div class="steps">
-        <strong>Linux</strong>
+    <div class="preview">
+      <h2 class="section-title" data-i18n="preview_title">Aperçu</h2>
+      <div class="preview-mock">
+        <div class="mock-bar">
+          <div class="mock-dot r"></div>
+          <div class="mock-dot y"></div>
+          <div class="mock-dot g"></div>
+        </div>
+        <div class="mock-title">Auto Clicker Pro</div>
+        <div class="mock-status">● Actif — 10 clics/s</div>
+        <div style="font-size:.75rem;color:var(--muted)">Clics par seconde</div>
+        <div class="mock-slider"></div>
+        <div class="mock-btns">
+          <div class="mock-btn start">▶ Démarrer</div>
+          <div class="mock-btn stop">■ Arrêter</div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title" data-i18n="install_title">Installation</h2>
+    <div class="install-box">
+      <div>
+        <h3>🐧 Linux</h3>
         <ol>
-          <li>Télécharge le fichier <code>.zip</code></li>
-          <li>Dézippe-le</li>
-          <li>Dans un terminal : <code>chmod +x AutoClickerPro</code> puis <code>./AutoClickerPro</code></li>
-        </ol>
-        <br />
-        <strong>Windows</strong>
-        <ol>
-          <li>Télécharge <code>AutoClickerPro.exe</code> depuis la release</li>
-          <li>Double-clique pour lancer</li>
-          <li>Si l'antivirus bloque : c'est un faux positif courant avec PyInstaller</li>
+          <li data-i18n="lin1">Télécharge le <code>.zip</code></li>
+          <li data-i18n="lin2">Dézippe le fichier</li>
+          <li><span data-i18n="lin3">Terminal :</span> <code>chmod +x AutoClickerPro</code></li>
+          <li><span data-i18n="lin4">Puis :</span> <code>./AutoClickerPro</code></li>
         </ol>
       </div>
-    </section>
+      <div>
+        <h3>🪟 Windows</h3>
+        <ol>
+          <li data-i18n="win1">Télécharge <code>AutoClickerPro.exe</code></li>
+          <li data-i18n="win2">Double-clique pour lancer</li>
+          <li data-i18n="win3">Antivirus : faux positif possible avec PyInstaller — autorise l'app</li>
+        </ol>
+      </div>
+    </div>
 
-    <div class="warn">
-      ⚠️ Utilise cet outil de manière responsable. L'automatisation peut être interdite
-      sur certains jeux ou plateformes. Usage personnel uniquement.
+    <div class="warn" data-i18n="warn">
+      ⚠️ Utilise cet outil de manière responsable. L'automatisation peut être interdite sur certains jeux ou plateformes.
     </div>
   </div>
 
   <footer>
-    <p>Fait par <a href="https://github.com/DX-de">DX-de</a> ·
-    <a href="https://github.com/DX-de/autoclick">Code source</a> ·
-    <a href="https://github.com/DX-de/autoclick/releases">Toutes les versions</a></p>
+    <p>
+      <span data-i18n="footer_by">Fait par</span>
+      <a href="https://github.com/DX-de">DX-de</a> ·
+      <a href="https://github.com/DX-de/autoclick" data-i18n="footer_src">Code source</a> ·
+      <a href="https://github.com/DX-de/autoclick/releases" data-i18n="footer_releases">Toutes les versions</a>
+    </p>
   </footer>
 
   <script>
-    // Met à jour les liens vers la dernière release GitHub automatiquement
+    const T = {
+      fr: {
+        badge: "Gratuit · Open source",
+        subtitle: "Clic automatique simple et puissant pour Windows et Linux. Raccourcis clavier, positions enregistrées, répétition infinie.",
+        stat_downloads: "Téléchargements",
+        stat_version: "Version",
+        stat_platforms: "Plateformes",
+        dl_linux: "Télécharger Linux",
+        dl_windows: "Télécharger Windows",
+        win_soon: "Version Windows : bientôt disponible — utilise la page Releases en attendant.",
+        note: "Aucune inscription · 100 % gratuit · Fonctionne hors-ligne",
+        nav_github: "GitHub",
+        features_title: "Fonctionnalités",
+        f1_t: "Rapide à configurer", f1_d: "Clics par seconde, gauche/droit/molette — prêt en 10 secondes.",
+        f2_t: "Raccourcis globaux", f2_d: "F6 start/stop, Échap urgence. Touches personnalisables.",
+        f3_t: "Positions enregistrées", f3_d: "Capture plusieurs points, ordre séquentiel ou aléatoire.",
+        f4_t: "Répétition flexible", f4_d: "Infini ou nombre de clics défini, avec barre de progression.",
+        f5_t: "Décompte & jitter", f5_d: "Compte à rebours avant départ et délais aléatoires optionnels.",
+        f6_t: "100 % local", f6_d: "Aucune donnée envoyée. Config stockée sur ton PC uniquement.",
+        preview_title: "Aperçu",
+        install_title: "Installation",
+        lin1: "Télécharge le .zip", lin2: "Dézippe le fichier", lin3: "Terminal :", lin4: "Puis :",
+        win1: "Télécharge AutoClickerPro.exe", win2: "Double-clique pour lancer",
+        win3: "Antivirus : faux positif possible avec PyInstaller — autorise l'app",
+        warn: "⚠️ Utilise cet outil de manière responsable. L'automatisation peut être interdite sur certains jeux ou plateformes.",
+        footer_by: "Fait par", footer_src: "Code source", footer_releases: "Toutes les versions",
+      },
+      en: {
+        badge: "Free · Open source",
+        subtitle: "Simple and powerful auto clicker for Windows and Linux. Hotkeys, saved positions, infinite repeat.",
+        stat_downloads: "Downloads",
+        stat_version: "Version",
+        stat_platforms: "Platforms",
+        dl_linux: "Download Linux",
+        dl_windows: "Download Windows",
+        win_soon: "Windows version coming soon — check the Releases page for now.",
+        note: "No signup · 100% free · Works offline",
+        nav_github: "GitHub",
+        features_title: "Features",
+        f1_t: "Quick setup", f1_d: "Clicks per second, left/right/middle — ready in 10 seconds.",
+        f2_t: "Global hotkeys", f2_d: "F6 start/stop, Esc emergency stop. Fully customizable.",
+        f3_t: "Saved positions", f3_d: "Capture multiple points, sequential or random order.",
+        f4_t: "Flexible repeat", f4_d: "Infinite or fixed click count with progress bar.",
+        f5_t: "Countdown & jitter", f5_d: "Optional countdown before start and random delays.",
+        f6_t: "100% local", f6_d: "No data sent. Settings stored on your PC only.",
+        preview_title: "Preview",
+        install_title: "Installation",
+        lin1: "Download the .zip", lin2: "Extract the file", lin3: "Terminal:", lin4: "Then:",
+        win1: "Download AutoClickerPro.exe", win2: "Double-click to run",
+        win3: "Antivirus: false positive possible with PyInstaller — allow the app",
+        warn: "⚠️ Use responsibly. Automation may be prohibited on some games or platforms.",
+        footer_by: "Made by", footer_src: "Source code", footer_releases: "All releases",
+      }
+    };
+
+    let lang = localStorage.getItem("acp-lang") || (navigator.language.startsWith("fr") ? "fr" : "en");
+
+    function applyLang() {
+      document.documentElement.lang = lang;
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        const k = el.getAttribute("data-i18n");
+        if (T[lang][k]) el.textContent = T[lang][k];
+      });
+      document.getElementById("lang-toggle").textContent = lang === "fr" ? "EN" : "FR";
+    }
+
+    function toggleLang() {
+      lang = lang === "fr" ? "en" : "fr";
+      localStorage.setItem("acp-lang", lang);
+      applyLang();
+    }
+
+    applyLang();
+
     fetch("https://api.github.com/repos/DX-de/autoclick/releases/latest")
       .then(r => r.json())
       .then(data => {
         if (!data.tag_name) return;
         document.getElementById("version").textContent = data.tag_name.replace("v", "");
+        let total = 0;
+        (data.assets || []).forEach(a => { total += a.download_count || 0; });
+        document.getElementById("dl-count").textContent = total > 0 ? total.toLocaleString() : "—";
         const assets = data.assets || [];
-        const linux = assets.find(a => a.name.includes("linux") || a.name.endsWith(".zip"));
+        const linux = assets.find(a => a.name.includes("linux") || (a.name.endsWith(".zip") && !a.name.endsWith(".exe.zip")));
         const win = assets.find(a => a.name.endsWith(".exe"));
         if (linux) document.getElementById("dl-linux").href = linux.browser_download_url;
-        if (win) document.getElementById("dl-windows").href = win.browser_download_url;
+        if (win) {
+          document.getElementById("dl-windows").href = win.browser_download_url;
+        } else {
+          document.getElementById("win-soon").classList.add("show");
+        }
       })
       .catch(() => {});
   </script>
