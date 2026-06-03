@@ -4,9 +4,7 @@ Application professionnelle de clic automatique pour **Windows** et **Linux**, �
 
 ## Télécharger (utilisateurs finaux)
 
-> Remplace `TON-UTILISATEUR` par ton compte GitHub une fois le projet en ligne.
-
-- **Dernière version** : [GitHub Releases](https://github.com/TON-UTILISATEUR/autoclick/releases/latest)
+- **Dernière version** : [GitHub Releases](https://github.com/DX-de/autoclick/releases/latest)
 - Windows : `AutoClickerPro.exe`
 - Linux : `AutoClickerPro-linux.zip` (dézipper puis lancer `./AutoClickerPro`)
 
