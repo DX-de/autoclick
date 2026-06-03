@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Auto Clicker Pro — clic automatique gratuit pour Windows et Linux. Téléchargement direct." />
+  <title>Auto Clicker Pro — Téléchargement</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0f0f14;
+      --card: #1a1a24;
+      --border: #2a2a3a;
+      --text: #e8e8f0;
+      --muted: #8888a0;
+      --green: #4ade80;
+      --blue: #60a5fa;
+      --red: #f87171;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Inter", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+    .hero {
+      text-align: center;
+      padding: 4rem 1.5rem 3rem;
+      background: radial-gradient(ellipse at 50% 0%, #1e2a4a 0%, var(--bg) 70%);
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(96,165,250,.15);
+      color: var(--blue);
+      font-size: .75rem;
+      font-weight: 600;
+      padding: .35rem .9rem;
+      border-radius: 999px;
+      margin-bottom: 1.2rem;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+    h1 {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 700;
+      margin-bottom: .8rem;
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 1.1rem;
+      max-width: 520px;
+      margin: 0 auto 2.5rem;
+    }
+    .downloads {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .6rem;
+      padding: .9rem 1.6rem;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 1rem;
+      text-decoration: none;
+      transition: transform .15s, box-shadow .15s;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.4); }
+    .btn-linux {
+      background: var(--green);
+      color: #052e16;
+    }
+    .btn-windows {
+      background: var(--blue);
+      color: #0c1a3a;
+    }
+    .btn-github {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      font-size: .9rem;
+      padding: .6rem 1.2rem;
+    }
+    .note {
+      color: var(--muted);
+      font-size: .85rem;
+      margin-top: .5rem;
+    }
+    .container { max-width: 900px; margin: 0 auto; padding: 0 1.5rem 4rem; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.2rem;
+      margin: 3rem 0;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+    .card h3 { font-size: 1rem; margin-bottom: .5rem; }
+    .card p { color: var(--muted); font-size: .9rem; }
+    .card .icon { font-size: 1.8rem; margin-bottom: .8rem; }
+    section h2 {
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+    .steps {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem 2rem;
+      margin-top: 2rem;
+    }
+    .steps ol { padding-left: 1.2rem; color: var(--muted); }
+    .steps li { margin: .5rem 0; }
+    .steps code {
+      background: #252535;
+      padding: .15rem .45rem;
+      border-radius: 4px;
+      font-size: .85rem;
+      color: var(--green);
+    }
+    .warn {
+      background: rgba(248,113,113,.08);
+      border: 1px solid rgba(248,113,113,.25);
+      border-radius: 10px;
+      padding: 1rem 1.2rem;
+      color: var(--muted);
+      font-size: .85rem;
+      margin-top: 2rem;
+      text-align: center;
+    }
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: .8rem;
+      padding: 2rem;
+      border-top: 1px solid var(--border);
+    }
+    footer a { color: var(--blue); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <header class="hero">
+    <div class="badge">Gratuit · Open source</div>
+    <h1>Auto Clicker Pro</h1>
+    <p class="subtitle">
+      Clic automatique simple et puissant pour Windows et Linux.
+      Raccourcis clavier, positions enregistrées, répétition infinie.
+    </p>
+
+    <div class="downloads">
+      <a class="btn btn-linux" id="dl-linux" href="https://github.com/DX-de/autoclick/releases/latest/download/AutoClickerPro-linux-v1.0.0.zip">
+        🐧 Télécharger Linux
+      </a>
+      <a class="btn btn-windows" id="dl-windows" href="https://github.com/DX-de/autoclick/releases/latest">
+        🪟 Télécharger Windows
+      </a>
+    </div>
+    <a class="btn btn-github" href="https://github.com/DX-de/autoclick">Voir sur GitHub</a>
+    <p class="note">Version <span id="version">1.0.0</span> · Aucune inscription requise</p>
+  </header>
+
+  <div class="container">
+    <div class="grid">
+      <div class="card">
+        <div class="icon">⚡</div>
+        <h3>Rapide à configurer</h3>
+        <p>Régle les clics par seconde, choisis gauche/droit/molette, et c'est parti.</p>
+      </div>
+      <div class="card">
+        <div class="icon">⌨️</div>
+        <h3>Raccourcis globaux</h3>
+        <p>F6 pour démarrer/arrêter, Échap pour l'arrêt d'urgence. Personnalisables.</p>
+      </div>
+      <div class="card">
+        <div class="icon">📍</div>
+        <h3>Positions enregistrées</h3>
+        <p>Capture plusieurs points à cliquer en séquence ou aléatoirement.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🔒</div>
+        <h3>100 % local</h3>
+        <p>Aucune connexion internet requise. Tes réglages restent sur ton PC.</p>
+      </div>
+    </div>
+
+    <section>
+      <h2>Installation</h2>
+      <div class="steps">
+        <strong>Linux</strong>
+        <ol>
+          <li>Télécharge le fichier <code>.zip</code></li>
+          <li>Dézippe-le</li>
+          <li>Dans un terminal : <code>chmod +x AutoClickerPro</code> puis <code>./AutoClickerPro</code></li>
+        </ol>
+        <br />
+        <strong>Windows</strong>
+        <ol>
+          <li>Télécharge <code>AutoClickerPro.exe</code> depuis la release</li>
+          <li>Double-clique pour lancer</li>
+          <li>Si l'antivirus bloque : c'est un faux positif courant avec PyInstaller</li>
+        </ol>
+      </div>
+    </section>
+
+    <div class="warn">
+      ⚠️ Utilise cet outil de manière responsable. L'automatisation peut être interdite
+      sur certains jeux ou plateformes. Usage personnel uniquement.
+    </div>
+  </div>
+
+  <footer>
+    <p>Fait par <a href="https://github.com/DX-de">DX-de</a> ·
+    <a href="https://github.com/DX-de/autoclick">Code source</a> ·
+    <a href="https://github.com/DX-de/autoclick/releases">Toutes les versions</a></p>
+  </footer>
+
+  <script>
+    // Met à jour les liens vers la dernière release GitHub automatiquement
+    fetch("https://api.github.com/repos/DX-de/autoclick/releases/latest")
+      .then(r => r.json())
+      .then(data => {
+        if (!data.tag_name) return;
+        document.getElementById("version").textContent = data.tag_name.replace("v", "");
+        const assets = data.assets || [];
+        const linux = assets.find(a => a.name.includes("linux") || a.name.endsWith(".zip"));
+        const win = assets.find(a => a.name.endsWith(".exe"));
+        if (linux) document.getElementById("dl-linux").href = linux.browser_download_url;
+        if (win) document.getElementById("dl-windows").href = win.browser_download_url;
+      })
+      .catch(() => {});
+  </script>
+</body>
+</html>
