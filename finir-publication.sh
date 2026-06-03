@@ -35,13 +35,15 @@ if [ ! -f "$ZIP" ]; then
 fi
 
 git remote remove origin 2>/dev/null || true
-git remote add origin "git@github.com:DX-de/autoclick.git"
 
 if ! "$GH" repo view DX-de/autoclick &>/dev/null; then
   echo "Création du dépôt public autoclick..."
   "$GH" repo create DX-de/autoclick --public --source=. --remote=origin \
     --description "Auto Clicker Pro — clic automatique Windows/Linux" --push
 else
+  echo "Dépôt existant — envoi du code..."
+  git remote add origin "git@github.com:DX-de/autoclick.git" 2>/dev/null \
+    || git remote set-url origin "git@github.com:DX-de/autoclick.git"
   git push -u origin main
 fi
 
