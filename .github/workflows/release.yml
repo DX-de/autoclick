@@ -1,4 +1,4 @@
-# Build automatique Windows + Linux à chaque tag v* (ex. v1.0.0)
+# Build automatique Windows + Linux à chaque tag v* (ex. v1.1.0)
 # Publie les fichiers sur GitHub Releases.
 
 name: Release
@@ -20,17 +20,15 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt pyinstaller
-      - run: |
-          pyinstaller --noconfirm --onefile --windowed --name AutoClickerPro ^
-            --hidden-import=PySide6 ^
-            --hidden-import=PySide6.QtCore ^
-            --hidden-import=PySide6.QtWidgets ^
-            --hidden-import=pynput ^
-            --hidden-import=customtkinter ^
-            --hidden-import=PIL ^
-            --collect-all PySide6 ^
-            --collect-all customtkinter ^
-            main.py
+      - name: Build Windows exe
+        shell: cmd
+        run: >
+          pyinstaller --noconfirm --onefile --windowed --name AutoClickerPro
+          --hidden-import=PySide6 --hidden-import=PySide6.QtCore
+          --hidden-import=PySide6.QtWidgets --hidden-import=pynput
+          --hidden-import=pynput.mouse --hidden-import=pynput.keyboard
+          --hidden-import=customtkinter --hidden-import=PIL
+          --collect-all PySide6 --collect-all customtkinter main.py
       - uses: actions/upload-artifact@v4
         with:
           name: windows-exe
@@ -67,14 +65,15 @@ jobs:
 
   publish:
     needs: [build-windows, build-linux]
+    if: always() && (needs.build-linux.result == 'success' || needs.build-windows.result == 'success')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
+          merge-multiple: true
       - uses: softprops/action-gh-release@v2
         with:
           files: |
-            artifacts/windows-exe/AutoClickerPro.exe
-            artifacts/linux-binary/AutoClickerPro-linux.zip
+            artifacts/**/*
           generate_release_notes: true
