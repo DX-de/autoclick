@@ -33,7 +33,30 @@
       color: var(--text);
       min-height: 100vh;
       line-height: 1.6;
+      position: relative;
     }
+    /* Canvas 3D en fond plein écran */
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -2;
+      display: block;
+    }
+    /* Voile dégradé pour la lisibilité du texte par-dessus la 3D */
+    #bg-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse 70% 50% at 50% 0%, rgba(96,165,250,.10), transparent 60%),
+        radial-gradient(ellipse 60% 60% at 80% 80%, rgba(167,139,250,.08), transparent 60%),
+        linear-gradient(180deg, rgba(10,10,15,.35) 0%, rgba(10,10,15,.65) 60%, rgba(10,10,15,.85) 100%);
+    }
+    /* Les blocs deviennent translucides pour laisser voir la 3D */
+    nav, .hero, .container, footer { position: relative; z-index: 1; }
     nav {
       display: flex;
       align-items: center;
@@ -155,18 +178,27 @@
       gap: 1rem;
     }
     .card {
-      background: var(--card);
+      background: rgba(20,20,28,.55);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       border: 1px solid var(--border);
       border-radius: 14px;
       padding: 1.4rem;
-      transition: background .15s, border-color .15s;
+      transition: transform .2s, background .15s, border-color .15s, box-shadow .2s;
     }
-    .card:hover { background: var(--card-hover); border-color: #353548; }
+    .card:hover {
+      background: rgba(26,26,38,.7);
+      border-color: var(--blue);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 36px rgba(96,165,250,.18);
+    }
     .card .icon { font-size: 1.6rem; margin-bottom: .7rem; }
     .card h3 { font-size: .95rem; font-weight: 600; margin-bottom: .35rem; }
     .card p { color: var(--muted); font-size: .85rem; }
     .install-box {
-      background: var(--card);
+      background: rgba(20,20,28,.55);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       border: 1px solid var(--border);
       border-radius: 14px;
       padding: 1.8rem 2rem;
@@ -262,6 +294,9 @@
   </style>
 </head>
 <body>
+
+  <canvas id="bg-canvas"></canvas>
+  <div id="bg-overlay"></div>
 
   <nav>
     <a class="logo" href="#">
@@ -400,6 +435,200 @@
       <a href="https://github.com/DX-de/autoclick/releases" data-i18n="footer_releases">Toutes les versions</a>
     </p>
   </footer>
+
+  <!-- Three.js (CDN) pour le fond 3D -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+    // ====================================================================
+    //  Fond 3D animé : réseau de particules + ondes de clic + parallaxe
+    // ====================================================================
+    (function init3D() {
+      const canvas = document.getElementById("bg-canvas");
+      if (!canvas || typeof THREE === "undefined") return;
+
+      // Respecte les utilisateurs qui préfèrent moins d'animations
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      const renderer = new THREE.WebGLRenderer({
+        canvas,
+        antialias: true,
+        alpha: true,
+        powerPreference: "high-performance",
+      });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(window.innerWidth, window.innerHeight);
+
+      const scene = new THREE.Scene();
+      scene.fog = new THREE.FogExp2(0x0a0a0f, 0.035);
+
+      const camera = new THREE.PerspectiveCamera(
+        70, window.innerWidth / window.innerHeight, 0.1, 100
+      );
+      camera.position.z = 18;
+
+      // ---- Champ de particules (étoiles flottantes) -------------------
+      const COUNT = reduce ? 900 : 2600;
+      const positions = new Float32Array(COUNT * 3);
+      const speeds = new Float32Array(COUNT);
+      const palette = [
+        new THREE.Color(0x60a5fa),
+        new THREE.Color(0x4ade80),
+        new THREE.Color(0xa78bfa),
+      ];
+      const colors = new Float32Array(COUNT * 3);
+
+      for (let i = 0; i < COUNT; i++) {
+        positions[i * 3]     = (Math.random() - 0.5) * 60;
+        positions[i * 3 + 1] = (Math.random() - 0.5) * 40;
+        positions[i * 3 + 2] = (Math.random() - 0.5) * 40;
+        speeds[i] = 0.2 + Math.random() * 0.8;
+        const c = palette[(Math.random() * palette.length) | 0];
+        colors[i * 3] = c.r; colors[i * 3 + 1] = c.g; colors[i * 3 + 2] = c.b;
+      }
+
+      const pGeo = new THREE.BufferGeometry();
+      pGeo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+      pGeo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+
+      // Texture ronde douce pour chaque particule
+      const sprite = (function () {
+        const c = document.createElement("canvas");
+        c.width = c.height = 64;
+        const g = c.getContext("2d");
+        const grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+        grad.addColorStop(0, "rgba(255,255,255,1)");
+        grad.addColorStop(0.25, "rgba(255,255,255,.85)");
+        grad.addColorStop(1, "rgba(255,255,255,0)");
+        g.fillStyle = grad;
+        g.fillRect(0, 0, 64, 64);
+        return new THREE.CanvasTexture(c);
+      })();
+
+      const pMat = new THREE.PointsMaterial({
+        size: 0.5,
+        map: sprite,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.9,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+      });
+      const points = new THREE.Points(pGeo, pMat);
+      scene.add(points);
+
+      // ---- Objets 3D flottants (icosaèdres filaires lumineux) ---------
+      const shapes = [];
+      const shapeDefs = reduce ? [] : [
+        { geo: new THREE.IcosahedronGeometry(3.4, 0), color: 0x60a5fa, pos: [-11, 4, -6] },
+        { geo: new THREE.OctahedronGeometry(2.6, 0),  color: 0x4ade80, pos: [12, -5, -4] },
+        { geo: new THREE.TorusGeometry(2.2, 0.5, 12, 40), color: 0xa78bfa, pos: [9, 6, -8] },
+        { geo: new THREE.DodecahedronGeometry(2.2, 0), color: 0x60a5fa, pos: [-10, -6, -5] },
+      ];
+      shapeDefs.forEach((d) => {
+        const mat = new THREE.MeshBasicMaterial({
+          color: d.color, wireframe: true, transparent: true, opacity: 0.35,
+        });
+        const mesh = new THREE.Mesh(d.geo, mat);
+        mesh.position.set(...d.pos);
+        mesh.rotationSpeed = {
+          x: (Math.random() - 0.5) * 0.004,
+          y: (Math.random() - 0.5) * 0.004,
+        };
+        mesh.floatPhase = Math.random() * Math.PI * 2;
+        scene.add(mesh);
+        shapes.push(mesh);
+      });
+
+      // ---- Ondes de clic (ripples sur clic souris) --------------------
+      const ripples = [];
+      function spawnRipple(nx, ny) {
+        const ringGeo = new THREE.RingGeometry(0.1, 0.35, 48);
+        const ringMat = new THREE.MeshBasicMaterial({
+          color: 0x4ade80, transparent: true, opacity: 0.9,
+          side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false,
+        });
+        const ring = new THREE.Mesh(ringGeo, ringMat);
+        const vec = new THREE.Vector3(nx, ny, 0.5).unproject(camera);
+        const dir = vec.sub(camera.position).normalize();
+        const dist = (8 - camera.position.z) / dir.z;
+        ring.position.copy(camera.position).add(dir.multiplyScalar(dist));
+        ring.life = 0;
+        scene.add(ring);
+        ripples.push(ring);
+      }
+
+      // ---- Interaction souris (parallaxe) -----------------------------
+      const target = { x: 0, y: 0 };
+      const cur = { x: 0, y: 0 };
+      window.addEventListener("mousemove", (e) => {
+        target.x = (e.clientX / window.innerWidth - 0.5);
+        target.y = (e.clientY / window.innerHeight - 0.5);
+      });
+      window.addEventListener("click", (e) => {
+        if (reduce) return;
+        spawnRipple(
+          (e.clientX / window.innerWidth) * 2 - 1,
+          -(e.clientY / window.innerHeight) * 2 + 1
+        );
+      });
+
+      // ---- Boucle de rendu --------------------------------------------
+      const clock = new THREE.Clock();
+      function animate() {
+        const t = clock.getElapsedTime();
+        const dt = Math.min(clock.getDelta(), 0.05);
+
+        // Dérive verticale lente des particules
+        const pos = pGeo.attributes.position.array;
+        for (let i = 0; i < COUNT; i++) {
+          pos[i * 3 + 1] += speeds[i] * 0.01;
+          if (pos[i * 3 + 1] > 20) pos[i * 3 + 1] = -20;
+        }
+        pGeo.attributes.position.needsUpdate = true;
+        points.rotation.y = t * 0.02;
+
+        // Rotation + flottement des formes
+        shapes.forEach((m) => {
+          m.rotation.x += m.rotationSpeed.x;
+          m.rotation.y += m.rotationSpeed.y;
+          m.position.y += Math.sin(t + m.floatPhase) * 0.004;
+        });
+
+        // Animation des ondes de clic
+        for (let i = ripples.length - 1; i >= 0; i--) {
+          const r = ripples[i];
+          r.life += dt;
+          const s = 1 + r.life * 14;
+          r.scale.set(s, s, s);
+          r.material.opacity = Math.max(0, 0.9 - r.life * 1.3);
+          if (r.life > 0.7) {
+            scene.remove(r);
+            r.geometry.dispose();
+            r.material.dispose();
+            ripples.splice(i, 1);
+          }
+        }
+
+        // Parallaxe douce de la caméra
+        cur.x += (target.x - cur.x) * 0.05;
+        cur.y += (target.y - cur.y) * 0.05;
+        camera.position.x = cur.x * 6;
+        camera.position.y = -cur.y * 4;
+        camera.lookAt(0, 0, 0);
+
+        renderer.render(scene, camera);
+        requestAnimationFrame(animate);
+      }
+      animate();
+
+      // ---- Redimensionnement ------------------------------------------
+      window.addEventListener("resize", () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+    })();
+  </script>
 
   <script>
     const T = {
