@@ -88,6 +88,30 @@ QProgressBar::chunk {
     background: #a6e3a1;
     border-radius: 4px;
 }
+QTabWidget::pane {
+    border: 1px solid #45475a;
+    border-radius: 8px;
+    top: -1px;
+    background: #1a1a26;
+}
+QTabBar::tab {
+    background: #313244;
+    color: #a6adc8;
+    padding: 8px 18px;
+    margin-right: 4px;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    font-weight: 600;
+}
+QTabBar::tab:selected {
+    background: #1a1a26;
+    color: #89b4fa;
+    border-bottom: 2px solid #89b4fa;
+}
+QTabBar::tab:hover:!selected {
+    background: #3a3a4d;
+    color: #cdd6f4;
+}
 """
 
 COLOR_ACTIVE = "#a6e3a1"

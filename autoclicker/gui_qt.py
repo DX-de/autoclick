@@ -30,6 +30,7 @@ from PySide6.QtWidgets import (
     QSlider,
     QSpinBox,
     QSystemTrayIcon,
+    QTabWidget,
     QVBoxLayout,
     QWidget,
 )
@@ -98,8 +99,9 @@ class KeyCaptureDialog(QDialog):
 class AutoClickerWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
-        self.setWindowTitle("Auto Clicker Pro v1.1")
-        self.resize(540, 820)
+        self.setWindowTitle("Auto Clicker Pro")
+        self.resize(540, 640)
+        self.setMinimumSize(480, 560)
         self.setWindowIcon(make_app_icon())
 
         self._settings = load_settings()
@@ -134,12 +136,14 @@ class AutoClickerWindow(QMainWindow):
         root = QWidget()
         self.setCentralWidget(root)
         layout = QVBoxLayout(root)
-        layout.setSpacing(10)
+        layout.setSpacing(12)
+        layout.setContentsMargins(16, 16, 16, 16)
 
+        # ---- En-tête : titre + statut (toujours visibles) ----
         header = QHBoxLayout()
         layout.addLayout(header)
         title = QLabel("Auto Clicker Pro")
-        title.setStyleSheet("font-size: 22px; font-weight: bold;")
+        title.setStyleSheet("font-size: 20px; font-weight: bold;")
         header.addWidget(title)
         header.addStretch()
         self._status = QLabel("● Arrêté")
@@ -148,50 +152,55 @@ class AutoClickerWindow(QMainWindow):
         )
         header.addWidget(self._status)
 
-        # Profils
-        prof = QGroupBox("Profils")
-        pl = QHBoxLayout(prof)
-        self._profile_combo = QComboBox()
-        self._profile_combo.setMinimumWidth(140)
-        self._profile_combo.currentTextChanged.connect(self._on_profile_selected)
-        pl.addWidget(QLabel("Profil :"))
-        pl.addWidget(self._profile_combo, 1)
-        save_p = QPushButton("Sauver")
-        save_p.clicked.connect(self._save_profile)
-        pl.addWidget(save_p)
-        new_p = QPushButton("Nouveau")
-        new_p.clicked.connect(self._new_profile)
-        pl.addWidget(new_p)
-        del_p = QPushButton("Suppr.")
-        del_p.clicked.connect(self._delete_profile)
-        pl.addWidget(del_p)
-        layout.addWidget(prof)
-        self._config_widgets.extend([self._profile_combo, save_p, new_p, del_p])
-        self._refresh_profile_combo()
-
-        btns = QHBoxLayout()
-        layout.addLayout(btns)
+        # ---- Gros bouton démarrer / arrêter ----
         self._toggle_btn = QPushButton("▶  Démarrer")
+        self._toggle_btn.setMinimumHeight(48)
         self._toggle_btn.setStyleSheet(
-            f"background:{COLOR_ACTIVE}; color:#1e1e2e; font-weight:bold; padding:14px;"
+            f"background:{COLOR_ACTIVE}; color:#1e1e2e; font-weight:bold; "
+            f"font-size:15px; padding:12px; border-radius:10px;"
         )
         self._toggle_btn.clicked.connect(self._on_toggle_clicked)
-        btns.addWidget(self._toggle_btn)
+        layout.addWidget(self._toggle_btn)
 
-        self._mouse_label = QLabel("Souris : — , —")
-        self._mouse_label.setAlignment(Qt.AlignCenter)
+        # ---- Barre d'info live (souris + clics) ----
+        info = QHBoxLayout()
+        self._mouse_label = QLabel("Souris : —")
         self._mouse_label.setStyleSheet(f"color: {COLOR_ACCENT};")
-        layout.addWidget(self._mouse_label)
-
-        self._click_label = QLabel("Clics effectués : 0")
-        self._click_label.setAlignment(Qt.AlignCenter)
-        layout.addWidget(self._click_label)
+        self._click_label = QLabel("Clics : 0")
+        self._click_label.setStyleSheet("color: #a6adc8;")
+        info.addWidget(self._mouse_label)
+        info.addStretch()
+        info.addWidget(self._click_label)
+        layout.addLayout(info)
 
         self._progress = QProgressBar()
         self._progress.setVisible(False)
         layout.addWidget(self._progress)
 
-        speed = QGroupBox("Clics par seconde")
+        # ---- Onglets ----
+        tabs = QTabWidget()
+        tabs.addTab(self._build_tab_simple(), "Simple")
+        tabs.addTab(self._build_tab_target(), "Cible")
+        tabs.addTab(self._build_tab_advanced(), "Avancé")
+        tabs.addTab(self._build_tab_profiles(), "Profils")
+        layout.addWidget(tabs, 1)
+
+        # ---- Pied de page ----
+        self._footer = QLabel()
+        self._footer.setStyleSheet("color: #6c7086; font-size: 11px;")
+        self._footer.setAlignment(Qt.AlignCenter)
+        layout.addWidget(self._footer)
+
+        self._refresh_profile_combo()
+        self._update_footer()
+
+    def _build_tab_simple(self) -> QWidget:
+        """Onglet principal : vitesse, type de clic, répétition."""
+        w = QWidget()
+        v = QVBoxLayout(w)
+        v.setSpacing(12)
+
+        speed = QGroupBox("Vitesse — clics par seconde")
         sl = QHBoxLayout(speed)
         self._cps_slider = QSlider(Qt.Horizontal)
         self._cps_slider.setRange(1, 100)
@@ -203,7 +212,7 @@ class AutoClickerWindow(QMainWindow):
         self._cps_spin.setSuffix(" /s")
         self._cps_spin.valueChanged.connect(self._on_cps_spin)
         sl.addWidget(self._cps_spin)
-        layout.addWidget(speed)
+        v.addWidget(speed)
         self._config_widgets.extend([self._cps_slider, self._cps_spin])
 
         click_g = QGroupBox("Type de clic")
@@ -220,9 +229,35 @@ class AutoClickerWindow(QMainWindow):
             cl.addWidget(rb)
             self._config_widgets.append(rb)
         self._btn_group.buttonClicked.connect(self._apply_settings)
-        layout.addWidget(click_g)
+        v.addWidget(click_g)
 
-        mode_g = QGroupBox("Mode de clic")
+        rep = QGroupBox("Répétition")
+        rl = QVBoxLayout(rep)
+        self._infinite = QCheckBox("Répétition infinie")
+        self._infinite.toggled.connect(self._on_infinite_toggle)
+        rl.addWidget(self._infinite)
+        self._config_widgets.append(self._infinite)
+        cr = QHBoxLayout()
+        cr.addWidget(QLabel("Nombre de clics :"))
+        self._count_spin = QSpinBox()
+        self._count_spin.setRange(1, 999999)
+        self._count_spin.valueChanged.connect(self._apply_settings)
+        cr.addWidget(self._count_spin)
+        cr.addStretch()
+        rl.addLayout(cr)
+        self._config_widgets.append(self._count_spin)
+        v.addWidget(rep)
+
+        v.addStretch()
+        return w
+
+    def _build_tab_target(self) -> QWidget:
+        """Onglet cible : où cliquer + positions enregistrées."""
+        w = QWidget()
+        v = QVBoxLayout(w)
+        v.setSpacing(12)
+
+        mode_g = QGroupBox("Où cliquer ?")
         ml = QVBoxLayout(mode_g)
         self._mode_cur = QRadioButton("Position actuelle de la souris")
         self._mode_saved = QRadioButton("Positions enregistrées")
@@ -233,7 +268,7 @@ class AutoClickerWindow(QMainWindow):
         self._config_widgets.extend([self._mode_cur, self._mode_saved])
 
         order_row = QHBoxLayout()
-        order_row.addWidget(QLabel("Ordre des positions :"))
+        order_row.addWidget(QLabel("Ordre :"))
         self._order_combo = QComboBox()
         self._order_combo.addItem("Séquentiel", PositionOrder.SEQUENTIAL.value)
         self._order_combo.addItem("Aléatoire", PositionOrder.RANDOM.value)
@@ -242,12 +277,12 @@ class AutoClickerWindow(QMainWindow):
         order_row.addStretch()
         ml.addLayout(order_row)
         self._config_widgets.append(self._order_combo)
-        layout.addWidget(mode_g)
+        v.addWidget(mode_g)
 
         pos_g = QGroupBox("Positions enregistrées (X, Y)")
-        pl = QVBoxLayout(pos_g)
+        pgl = QVBoxLayout(pos_g)
         self._pos_list = QListWidget()
-        pl.addWidget(self._pos_list)
+        pgl.addWidget(self._pos_list)
         pb = QHBoxLayout()
         for text, slot in [
             ("+ Capturer", self._capture_position),
@@ -258,30 +293,19 @@ class AutoClickerWindow(QMainWindow):
             b.clicked.connect(slot)
             pb.addWidget(b)
             self._config_widgets.append(b)
-        pl.addLayout(pb)
+        pgl.addLayout(pb)
         self._config_widgets.append(self._pos_list)
-        layout.addWidget(pos_g)
+        v.addWidget(pos_g, 1)
+        return w
 
-        rep = QGroupBox("Répétition")
-        rl = QVBoxLayout(rep)
-        self._infinite = QCheckBox("Répétition infinie")
-        self._infinite.toggled.connect(self._on_infinite_toggle)
-        rl.addWidget(self._infinite)
-        self._config_widgets.append(self._infinite)
+    def _build_tab_advanced(self) -> QWidget:
+        """Onglet avancé : timing, raccourcis, comportement."""
+        w = QWidget()
+        v = QVBoxLayout(w)
+        v.setSpacing(12)
 
-        cr = QHBoxLayout()
-        cr.addWidget(QLabel("Nombre de clics :"))
-        self._count_spin = QSpinBox()
-        self._count_spin.setRange(1, 999999)
-        self._count_spin.valueChanged.connect(self._apply_settings)
-        cr.addWidget(self._count_spin)
-        cr.addStretch()
-        rl.addLayout(cr)
-        self._config_widgets.append(self._count_spin)
-        layout.addWidget(rep)
-
-        adv = QGroupBox("Options avancées")
-        ag = QGridLayout(adv)
+        timing = QGroupBox("Timing")
+        ag = QGridLayout(timing)
         ag.addWidget(QLabel("Décompte avant départ (s) :"), 0, 0)
         self._countdown_spin = QSpinBox()
         self._countdown_spin.setRange(0, 30)
@@ -304,13 +328,7 @@ class AutoClickerWindow(QMainWindow):
         self._jitter_max.valueChanged.connect(self._on_jitter_changed)
         ag.addWidget(self._jitter_max, 2, 1)
         self._config_widgets.append(self._jitter_max)
-
-        self._minimize_tray = QCheckBox("Réduire dans la barre système à la fermeture")
-        self._minimize_tray.setChecked(True)
-        self._minimize_tray.toggled.connect(self._on_tray_toggle)
-        ag.addWidget(self._minimize_tray, 3, 0, 1, 2)
-
-        layout.addWidget(adv)
+        v.addWidget(timing)
 
         hk = QGroupBox("Raccourcis clavier")
         gl = QGridLayout(hk)
@@ -328,13 +346,59 @@ class AutoClickerWindow(QMainWindow):
         b2 = QPushButton("Modifier")
         b2.clicked.connect(lambda: self._configure_hotkey("emergency"))
         gl.addWidget(b2, 1, 2)
-        layout.addWidget(hk)
+        v.addWidget(hk)
 
-        self._footer = QLabel()
-        self._footer.setStyleSheet("color: #6c7086; font-size: 11px;")
-        self._footer.setAlignment(Qt.AlignCenter)
-        layout.addWidget(self._footer)
-        self._update_footer()
+        misc = QGroupBox("Comportement")
+        mv = QVBoxLayout(misc)
+        self._minimize_tray = QCheckBox(
+            "Réduire dans la barre système à la fermeture"
+        )
+        self._minimize_tray.setChecked(True)
+        self._minimize_tray.toggled.connect(self._on_tray_toggle)
+        mv.addWidget(self._minimize_tray)
+        v.addWidget(misc)
+
+        v.addStretch()
+        return w
+
+    def _build_tab_profiles(self) -> QWidget:
+        """Onglet profils : gestion des presets."""
+        w = QWidget()
+        v = QVBoxLayout(w)
+        v.setSpacing(12)
+
+        prof = QGroupBox("Profils de configuration")
+        pgl = QVBoxLayout(prof)
+        row = QHBoxLayout()
+        row.addWidget(QLabel("Profil actif :"))
+        self._profile_combo = QComboBox()
+        self._profile_combo.setMinimumWidth(160)
+        self._profile_combo.currentTextChanged.connect(self._on_profile_selected)
+        row.addWidget(self._profile_combo, 1)
+        pgl.addLayout(row)
+        btns = QHBoxLayout()
+        save_p = QPushButton("Sauver")
+        save_p.clicked.connect(self._save_profile)
+        new_p = QPushButton("Nouveau")
+        new_p.clicked.connect(self._new_profile)
+        del_p = QPushButton("Supprimer")
+        del_p.clicked.connect(self._delete_profile)
+        for b in (save_p, new_p, del_p):
+            btns.addWidget(b)
+        pgl.addLayout(btns)
+        self._config_widgets.extend([self._profile_combo, save_p, new_p, del_p])
+        v.addWidget(prof)
+
+        hint = QLabel(
+            "Sauvegarde plusieurs configurations (vitesse, positions, "
+            "raccourcis…) et bascule de l'une à l'autre en un clic."
+        )
+        hint.setWordWrap(True)
+        hint.setStyleSheet("color: #6c7086; font-size: 11px;")
+        v.addWidget(hint)
+
+        v.addStretch()
+        return w
 
     def _setup_tray(self) -> None:
         if not QSystemTrayIcon.isSystemTrayAvailable():
@@ -711,7 +775,7 @@ class AutoClickerWindow(QMainWindow):
         QTimer.singleShot(
             0,
             lambda: (
-                self._click_label.setText(f"Clics effectués : {count}"),
+                self._click_label.setText(f"Clics : {count}"),
                 self._update_progress(count),
             ),
         )
